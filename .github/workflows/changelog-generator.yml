@@ -1,7 +1,0 @@
-- name: Generate Changelog
-  id: changelog
-  uses: release-changelog-generator/action@v1
-  with:
-    version: ${{ steps.get_commit.outputs.commit_hash }}  # Versão para gerar changelog (opcional)
-    output-file: ./RELEASE_NOTES.md  # Caminho onde o changelog será gerado
-    exclude: 'docs,style'  # Exclui commits de categorias específicas (opcional)
