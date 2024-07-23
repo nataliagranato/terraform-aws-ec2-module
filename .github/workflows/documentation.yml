@@ -24,7 +24,12 @@ jobs:
       - name: Generate Terraform documentation
         run: |
           cd modules/instances
-          terraform-docs markdown table --output-file README.md --output-mode inject ./
+          terraform-docs markdown table --output-file ../temp_readme.md --output-mode inject ./
+          
+      - name: Move README.md to root directory
+        run: |
+          mv temp_readme.md README.md
+
       - name: Commit changes
         run: |
           git config --local user.email "nataliagranato@ufmg.br"
