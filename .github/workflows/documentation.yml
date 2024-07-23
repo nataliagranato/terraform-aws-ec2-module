@@ -13,12 +13,22 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Render terraform docs and push changes back to PR
-        uses: terraform-docs/gh-actions@main
-        with:
-          working-dir: ./modules/instances
-          output-file: ../README.md  # Alterando o caminho de saída para o README.md na raiz
-          output-method: inject
-          git-push: "true"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Generate Terraform documentation
+        run: |
+          cd modules/instances
+          terraform-docs markdown . > ../../temp_readme.md
+        working-directory: ${{ github.workspace }}
+
+      - name: Inject Terraform docs into README.md
+        run: |
+          cat ../../temp_readme.md > README.md
+        working-directory: ${{ github.workspace }}
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "nataliagranato@ufmg.br"
+          git config --local user.name "nataliagranato"
+          git add README.md
+          git commit -m "Update Terraform documentation"
+          git push
+        working-directory: ${{ github.workspace }}
