@@ -1,7 +1,7 @@
 name: build docs
 on:
   push:
-    branches: [ master ]
+    branches: [ "main" ]
     paths:
       - '**.tf'
 
