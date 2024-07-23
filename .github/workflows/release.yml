@@ -14,10 +14,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'  # Usar a versão mais recente do Python 3 disponível
+      - name: Set up Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "<>"
+      
+      - name: Bump Version and Create Tag
+        id: versioning
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0)
+          if [ -z "$latest_tag" ]; then
+            new_tag="v1.0.0"
+          else
+            new_tag=$(echo $latest_tag | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
+          fi
+          echo "Creating new tag: $new_tag"
+          git tag $new_tag
+          echo "::set-output name=new_tag::$new_tag"
+
+      - name: Push Tag to GitHub
+        if: success()
+        run: |
+          git push origin ${{ steps.versioning.outputs.new_tag }}
 
       - name: Install git-changelog
         run: pip install git-changelog
@@ -25,12 +43,7 @@ jobs:
       - name: Generate Changelog
         id: changelog
         run: |
-          latest_tag=$(git describe --tags --abbrev=0)
-          if [ -z "$latest_tag" ]; then
-            git-changelog -s > RELEASE_NOTES.md
-          else
-            git-changelog -t ${latest_tag}..HEAD -s > RELEASE_NOTES.md
-          fi
+          git-changelog -t ${latest_tag}..HEAD -s > RELEASE_NOTES.md
 
       - name: Create Release
         id: create_release
@@ -38,8 +51,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.USER_TOKEN }}
         with:
-          tag_name: v1.${{ github.run_number }}
-          release_name: Release v1.${{ github.run_number }}
+          tag_name: ${{ steps.versioning.outputs.new_tag }}
+          release_name: Release ${{ steps.versioning.outputs.new_tag }}
           body_path: ./RELEASE_NOTES.md
           draft: false
           prerelease: false
