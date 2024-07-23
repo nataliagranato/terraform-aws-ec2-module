@@ -21,8 +21,6 @@ jobs:
         
       - name: Build docs
         uses: richardjkendall/tf-auto-document.action@v0.05
-        with:
-          entryPoint: '.'
 
 
       - name: Commit doc changes
