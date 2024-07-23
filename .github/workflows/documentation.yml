@@ -1,39 +1,24 @@
-name: Generate Terraform Docs
-
+name: Generate terraform docs
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
-  generate_docs:
+  docs:
     runs-on: ubuntu-latest
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        
-      - name: Install terraform-docs
-        run: |
-          curl -Lo ./terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/v0.18.0/terraform-docs-v0.18.0-$(uname -s | tr '[:upper:]' '[:lower:]')-amd64.tar.gz
-          tar -xzf terraform-docs.tar.gz
-          chmod +x terraform-docs
-          mv terraform-docs /usr/local/bin/terraform-docs
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Generate Terraform documentation
-        run: |
-          cd modules/instances
-          terraform-docs markdown table --output-file ../temp_readme.md --output-mode inject ./
-          
-      - name: Move README.md to root directory
-        run: |
-          mv temp_readme.md README.md
-
-      - name: Commit changes
-        run: |
-          git config --local user.email "nataliagranato@ufmg.br"
-          git config --local user.name "nataliagranato"
-          git add README.md
-          git commit -m "Update Terraform documentation"
-          git push
+    - name: Render terraform docs and push changes back to PR
+      uses: terraform-docs/gh-actions@main
+      with:
+        working-dir: .
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
+      env:
+       GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
