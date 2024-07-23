@@ -19,26 +19,25 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "<>"
 
-      - name: Check if there are tags
-        id: check_tags
+      - name: Bump Version and Create Tag
+        id: versioning
         run: |
-          tags=$(git tag)
-          if [ -z "$tags" ]; then
-            echo "No tags found in the repository."
-            echo "Creating initial tag: v1.0.0"
-            git tag v1.0.0
-            echo "::set-output name=new_tag::v1.0.0"
+          latest_tag=$(git describe --tags --abbrev=0)
+          if [ -z "$latest_tag" ]; then
+            new_tag="v1.0.0"
           else
-            latest_tag=$(git describe --tags --abbrev=0)
-            echo "::set-output name=new_tag::$latest_tag"
+            new_tag=$(echo $latest_tag | awk -F. '{$NF = $NF + 1;} 1' | sed 's/ /./g')
           fi
+          echo "Creating new tag: $new_tag"
+          git tag $new_tag
+          echo "::set-output name=new_tag::$new_tag"
 
       - name: Push Tag to GitHub
-        if: success() && steps.check_tags.outputs.new_tag != ''
+        if: success()
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}  # Usando o token de acesso como variável de ambiente
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          git push origin ${{ steps.check_tags.outputs.new_tag }}
+          git push origin ${{ steps.versioning.outputs.new_tag }}
 
       - name: Install git-changelog
         run: pip install git-changelog
@@ -46,17 +45,17 @@ jobs:
       - name: Generate Changelog
         id: changelog
         run: |
-          latest_tag=${{ steps.check_tags.outputs.new_tag }}
+          latest_tag=${{ steps.versioning.outputs.new_tag }}
           git-changelog -t ${latest_tag}..HEAD -s > RELEASE_NOTES.md
 
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}  # Usando o token de acesso como variável de ambiente
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          tag_name: ${{ steps.check_tags.outputs.new_tag }}
-          release_name: Release ${{ steps.check_tags.outputs.new_tag }}
+          tag_name: ${{ steps.versioning.outputs.new_tag }}
+          release_name: Release ${{ steps.versioning.outputs.new_tag }}
           body_path: ./RELEASE_NOTES.md
           draft: false
           prerelease: false
