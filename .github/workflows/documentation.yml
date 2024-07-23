@@ -1,29 +1,22 @@
-name: build docs
+name: Generate terraform docs
 on:
   push:
     branches: [ "main" ]
-    paths:
-      - '**.tf'
-
+  pull_request:
+    branches: [ "main" ]
+    
 jobs:
-  build:
-    name: build docs
+  docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v3
       with:
-        fetch-depth: 0
-    - name: get all tags
-      run: git fetch origin +refs/tags/*:refs/tags/*
-    - name: build docs
-      uses: richardjkendall/tf-auto-document.action@v0.05
+        ref: ${{ github.event.pull_request.head.ref }}
+
+    - name: Render terraform docs and push changes back to PR
+      uses: terraform-docs/gh-actions@main
       with:
-        modulesFolder: 'modules'
-    - name: commit doc changes
-      run : |
-        git_hash=$(git rev-parse --short "$GITHUB_SHA")
-        git add **/*.md
-        git config user.email <nataliagranato@ufmg.br>
-        git config user.name "nataliagranato"
-        git commit -m "docs for commit $git_hash"
-        git push
+        working-dir: .
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
