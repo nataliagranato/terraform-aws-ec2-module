@@ -22,7 +22,7 @@ jobs:
       - name: Build docs
         uses: richardjkendall/tf-auto-document.action@v0.05
         with:
-            working-dir: .
+          entryPoint: .
 
 
       - name: Commit doc changes
