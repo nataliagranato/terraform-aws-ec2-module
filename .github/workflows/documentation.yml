@@ -23,6 +23,7 @@ jobs:
 
       - name: Generate Terraform documentation
         run: |
+          cd modules/instances
           terraform-docs markdown table --output-file README.md --output-mode inject ./
       - name: Commit changes
         run: |
