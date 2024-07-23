@@ -1,1 +1,2 @@
-# terraform-aws-ec2
+# terraform-aws-ec2-module
+[![tfsec](https://github.com/nataliagranato/terraform-aws-ec2-module/actions/workflows/tfsec.yml/badge.svg)](https://github.com/nataliagranato/terraform-aws-ec2-module/actions/workflows/tfsec.yml)
