@@ -9,16 +9,16 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-      with:
-        ref: ${{ github.event.pull_request.head.ref }}
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
 
-    - name: Render terraform docs and push changes back to PR
-      uses: terraform-docs/gh-actions@main
-      with:
-        working-dir: ./modules/instances
-        output-file: ./README.md
-        output-method: inject
-        git-push: "true"
-      env:
-       GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Render terraform docs and push changes back to PR
+        uses: terraform-docs/gh-actions@main
+        with:
+          working-dir: ./modules/instances
+          output-file: ../README.md  # Alterando o caminho de saída para o README.md na raiz
+          output-method: inject
+          git-push: "true"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
